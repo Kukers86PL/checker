@@ -20,7 +20,8 @@ namespace checker
     {
         private String label  = "";
         private String name = "";
-        private string URL = "https://ipinfo.io";
+        private String ipURL = "https://v4.ipv6-test.com/api/myip.php";
+        private String ipInfoURL = "https://ipwhois.app/json/";
         private Boolean match = false;
 
         public String getConfigString()
@@ -40,13 +41,13 @@ namespace checker
             return false;
         }
 
-        public Boolean check()
+        private String sendAndReceive(String Url)
         {
             using (var client = new HttpClient())
             {
                 var request = new HttpRequestMessage()
                 {
-                    RequestUri = new Uri(URL),
+                    RequestUri = new Uri(Url),
                     Method = HttpMethod.Get,
                 };
 
@@ -57,14 +58,23 @@ namespace checker
                     var responseContent = response.Content;
 
                     // by calling .Result you are synchronously reading the result
-                    string responseString = responseContent.ReadAsStringAsync().Result;                    
+                    string responseString = responseContent.ReadAsStringAsync().Result;
 
-                    if (responseString.Contains(name))
-                    {
-                        match = true;
-                        return true;
-                    }
+                    return responseString;
                 }
+            }
+            return "";
+        }
+
+        public Boolean check()
+        {
+            String myIPv4 = sendAndReceive(ipURL);
+            String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4);
+
+            if (myIpv4Info.Contains(name))
+            {
+                match = true;
+                return true;
             }
 
             match = false;
