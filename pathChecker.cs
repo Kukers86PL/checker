@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace checker
 {
@@ -18,7 +19,8 @@ namespace checker
         private String path  = "";
         private String label = "";
         private Boolean exists = false;
-        private String STATUS_FILE = "status.txt";
+        private String STATUS_FILE = "seed.txt";
+        private String seed = "";
 
         public String getConfigString()
         {
@@ -28,10 +30,11 @@ namespace checker
         public Boolean pasreConfig(Char Separator, String ConfigText)
         {
             String[] subs = ConfigText.Split(Separator);
-            if (subs.Length == 3)
+            if (subs.Length == 4)
             {
                 label  = subs[1];
                 path = subs[2];
+                seed = subs[3];
                 return true;
             }
             return false;
@@ -39,18 +42,11 @@ namespace checker
 
         public Boolean check()
         {
-            Random rnd = new Random();
-            int rand = rnd.Next();
-
-            StreamWriter write_file = new StreamWriter(path + "\\" + STATUS_FILE, false);
-            write_file.WriteLine(rand.ToString());
-            write_file.Close();
-
             System.IO.StreamReader read_file = new System.IO.StreamReader(path + "\\" + STATUS_FILE);
             String line = read_file.ReadLine();
             read_file.Close();
 
-            if (line == rand.ToString())
+            if (line == seed)
             {
                 exists = true;
                 return true;
