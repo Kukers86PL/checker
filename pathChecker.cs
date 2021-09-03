@@ -58,7 +58,7 @@ namespace checker
 
         public String getLabel()
         {
-            return label;
+            return label + "\n" + (exists ? "OK" : "NOK");
         }
 
         public String getLog(Char Separator)
