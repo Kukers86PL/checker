@@ -24,7 +24,7 @@ namespace checker
         private String nodeId = "";
         private string URL = "https://my.zerotier.com";
         private Boolean online = false;
-        private String physicalAddress = "";
+        private String physicalAddress = "Unknown";
 
         public String getConfigString()
         {
@@ -68,8 +68,16 @@ namespace checker
 
                     string searchString = "\"physicalAddress\":\"";
                     int startIndex = responseString.IndexOf(searchString);
-                    int endIndex = responseString.IndexOf("\"", startIndex + searchString.Length);
-                    physicalAddress = responseString.Substring(startIndex + searchString.Length, endIndex - (startIndex + searchString.Length));
+                    if (startIndex > 0)
+                    {
+                        int endIndex = responseString.IndexOf("\"", startIndex + searchString.Length);
+                        physicalAddress = responseString.Substring(startIndex + searchString.Length, endIndex - (startIndex + searchString.Length));
+                    }
+                    else
+                    {
+                        physicalAddress = "Unknown";
+                    }
+                    
 
                     if (responseString.Contains(",\"online\":true,"))
                     {
