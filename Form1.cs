@@ -180,6 +180,7 @@ namespace checker
 
             checkers.Add(new pingChecker());
             checkers.Add(new pathChecker());
+            checkers.Add(new zeroTierChecker());
 
             isRunning = true;
 
