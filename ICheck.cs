@@ -18,6 +18,6 @@ namespace checker
 
         String getLog(Char Separator);
 
-        object Clone();
+        new object Clone();
     }
 }
