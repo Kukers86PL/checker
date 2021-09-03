@@ -84,7 +84,7 @@ namespace checker
             StreamWriter file = new StreamWriter(LOG_FILE, true);
             for (int i = 0; i < listToCheck.Count(); i++)
             {
-                line += listToCheck[i].checker.getLog(SEPARATOR);
+                line += listToCheck[i].checker.getConfigString() + SEPARATOR + listToCheck[i].checker.getLog(SEPARATOR);
             }
             file.WriteLine(line);
             file.Close();
@@ -181,6 +181,7 @@ namespace checker
             checkers.Add(new pingChecker());
             checkers.Add(new pathChecker());
             checkers.Add(new zeroTierChecker());
+            checkers.Add(new ispChecker());
 
             isRunning = true;
 
