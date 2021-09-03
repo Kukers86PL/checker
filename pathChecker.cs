@@ -52,9 +52,11 @@ namespace checker
 
             if (line == rand.ToString())
             {
+                exists = true;
                 return true;
             }
 
+            exists = false;
             return false;
         }
 
@@ -65,7 +67,7 @@ namespace checker
 
         public String getLog(Char Separator)
         {
-            return label + Separator + (exists ? "1" : "0") + Separator;
+            return label + Separator + path + Separator + (exists ? "1" : "0") + Separator;
         }
 
         public object Clone()
