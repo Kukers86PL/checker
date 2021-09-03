@@ -179,6 +179,7 @@ namespace checker
             }
 
             checkers.Add(new pingChecker());
+            checkers.Add(new pathChecker());
 
             isRunning = true;
 
