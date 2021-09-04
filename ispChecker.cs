@@ -69,9 +69,9 @@ namespace checker
         public Boolean check()
         {
             String myIPv4 = sendAndReceive(ipURL);
-            String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4);
+            String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4).ToLower();
 
-            if (myIpv4Info.Contains(name))
+            if (myIpv4Info.Contains(name.ToLower()))
             {
                 match = true;
                 return true;
