@@ -82,7 +82,7 @@ namespace checker
 
         public String getLog(Char Separator)
         {
-            return label + Separator + (match ? "1" : "0") + Separator;
+            return label + Separator + ip + Separator + (match ? "1" : "0") + Separator;
         }
 
         public object Clone()
