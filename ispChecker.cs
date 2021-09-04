@@ -21,8 +21,11 @@ namespace checker
         private String label  = "";
         private String name = "";
         private String ipURL = "https://v4.ipv6-test.com/api/myip.php";
-        private String ipInfoURL = "https://ipwhois.app/json/";
+        private String ipInfoURL = "https://ipinfo.io/";
+        private int forceCheck = 0;
         private Boolean match = false;
+        private int count = 0;
+        private String cachedIp = "";
 
         public String getConfigString()
         {
@@ -32,10 +35,11 @@ namespace checker
         public Boolean pasreConfig(Char Separator, String ConfigText)
         {
             String[] subs = ConfigText.Split(Separator);
-            if (subs.Length == 3)
+            if (subs.Length == 4)
             {
                 label  = subs[1];
                 name = subs[2];
+                forceCheck = Int32.Parse(subs[3]);
                 return true;
             }
             return false;
@@ -68,17 +72,20 @@ namespace checker
 
         public Boolean check()
         {
+            count++;
             String myIPv4 = sendAndReceive(ipURL);
-            String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4).ToLower();
 
-            if (myIpv4Info.Contains(name.ToLower()))
+            if ((cachedIp != myIPv4) || (count >= forceCheck))
             {
-                match = true;
-                return true;
+                cachedIp = myIPv4;
+                count = 0;
+
+                String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4).ToLower();
+
+                match = myIpv4Info.Contains(name.ToLower());
             }
 
-            match = false;
-            return false;
+            return match;
         }
 
         public String getLabel()
