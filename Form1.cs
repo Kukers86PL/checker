@@ -10,6 +10,8 @@ using System.Windows.Forms;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.IO;
+using System.Net.Sockets;
+using System.Security.Cryptography;
 
 namespace checker
 {
@@ -21,6 +23,9 @@ namespace checker
         private String APP         = "Checker";
         private String VERSION     = "v1.0";
         private Char   SEPARATOR   = ';';
+        private int    PORT        = 0;
+        private String IP_ADDRESS  = "";
+        private String PSK         = "";
 
         private struct checkerStatus
         {
@@ -106,14 +111,22 @@ namespace checker
                 {
                     continue;
                 }
+                String[] subs = line.Split(SEPARATOR);
                 count++;
                 switch (count)
                 {
                     case 1:
                         INTERVAL = Int32.Parse(line);
                         break;
+                    case 2:
+                        if (subs.Length == 3)
+                        {
+                            IP_ADDRESS = subs[0];
+                            PORT = Int32.Parse(subs[1]);
+                            PSK = subs[2];
+                        }
+                        break;
                     default:
-                        String[] subs = line.Split(SEPARATOR);
                         if (subs.Length >= 1)
                         {
                             String checkerConfigText = subs[0];
@@ -134,6 +147,64 @@ namespace checker
             }
             file.Close();
         }
+
+        private string EncryptString(string key, string plainText)
+        {
+            byte[] iv = new byte[16];
+            byte[] array;
+
+            string temp = "";
+            for(int i = 0; i < 32; i++)
+            {
+                temp += key[i % key.Length];
+            }
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(temp);
+                aes.IV = iv;
+
+                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
+                        {
+                            streamWriter.Write(plainText);
+                        }
+
+                        array = memoryStream.ToArray();
+                    }
+                }
+            }
+
+            return Convert.ToBase64String(array);
+        }
+
+        void sendUpdate()
+        {
+            String message = "Checker" + SEPARATOR + lastCheckDate + SEPARATOR;
+            for (int i = 0; i < listToCheck.Count; i++)
+            {
+                message += listToCheck[i].checker.getLabel() + SEPARATOR + (listToCheck[i].status ? "1" : "0") + SEPARATOR;
+            }
+
+            message = EncryptString(PSK, message);
+
+            UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
+            Byte[] sendBytes = Encoding.ASCII.GetBytes(message);
+            try
+            {
+                udpClient.Send(sendBytes, sendBytes.Length);
+            }
+            catch
+            {
+                // nothing to do
+            }
+        }
+
         void run()
         {
             int count = INTERVAL;
@@ -146,6 +217,7 @@ namespace checker
                     readConfig();
                     checkStatus();
                     storeData();
+                    sendUpdate();
 
                     Invalidate();
                 }
