@@ -319,7 +319,7 @@ namespace checker
             else
             {
                 QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT + SEPARATOR + PSK, QRCodeGenerator.ECCLevel.Q);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT.ToString() + SEPARATOR + PSK, QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new QRCode(qrCodeData);
                 Bitmap qrCodeImage = qrCode.GetGraphic(20);
                 grafx.Graphics.DrawImage(qrCodeImage, 0, 0);
