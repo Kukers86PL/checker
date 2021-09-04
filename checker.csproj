@@ -62,7 +62,7 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="ICheck.cs" />
-    <Compile Include="ispChecker.cs" />
+    <Compile Include="ipChecker.cs" />
     <Compile Include="zeroTierChecker.cs" />
     <Compile Include="pathChecker.cs" />
     <Compile Include="pingChecker.cs" />

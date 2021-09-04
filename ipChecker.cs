@@ -16,30 +16,26 @@ using System.Net.Http.Headers;
 
 namespace checker
 {
-    class ispChecker : ICheck
+    class ipChecker : ICheck
     {
         private String label  = "";
-        private String name = "";
+        private String ip = "";
         private String ipURL = "https://v4.ipv6-test.com/api/myip.php";
-        private String ipInfoURL = "https://ipinfo.io/";
         private int forceCheck = 0;
         private Boolean match = false;
-        private int count = 0;
-        private String cachedIp = "";
 
         public String getConfigString()
         {
-            return "isp";
+            return "ip";
         }
 
         public Boolean pasreConfig(Char Separator, String ConfigText)
         {
             String[] subs = ConfigText.Split(Separator);
-            if (subs.Length == 4)
+            if (subs.Length == 3)
             {
                 label  = subs[1];
-                name = subs[2];
-                forceCheck = Int32.Parse(subs[3]);
+                ip = subs[2];
                 return true;
             }
             return false;
@@ -72,25 +68,16 @@ namespace checker
 
         public Boolean check()
         {
-            count++;
             String myIPv4 = sendAndReceive(ipURL);
 
-            if ((cachedIp != myIPv4) || (count >= forceCheck))
-            {
-                cachedIp = myIPv4;
-                count = 0;
-
-                String myIpv4Info = sendAndReceive(ipInfoURL + myIPv4).ToLower();
-
-                match = myIpv4Info.Contains(name.ToLower());
-            }
+            match = (myIPv4 == ip);
 
             return match;
         }
 
         public String getLabel()
         {
-            return label + "\nISP";
+            return label + "\nIP";
         }
 
         public String getLog(Char Separator)
