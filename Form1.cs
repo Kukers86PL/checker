@@ -12,6 +12,7 @@ using System.Threading;
 using System.IO;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using QRCoder;
 
 namespace checker
 {
@@ -39,6 +40,7 @@ namespace checker
         private BufferedGraphics grafx;
         private String lastCheckDate;
         private Boolean isRunning;
+        private Boolean normalMode;
 
         ICheck getChecker(String checkerConfigText)
         {
@@ -191,7 +193,10 @@ namespace checker
                 message += listToCheck[i].checker.getLabel() + SEPARATOR + (listToCheck[i].status ? "1" : "0") + SEPARATOR;
             }
 
-            message = EncryptString(PSK, message);
+            if (PSK.Length > 0)
+            {
+                message = EncryptString(PSK, message);
+            }
 
             UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
             Byte[] sendBytes = Encoding.ASCII.GetBytes(message);
@@ -229,6 +234,7 @@ namespace checker
 
         void init()
         {
+            normalMode = true;
             checkers = new List<ICheck>();
             listToCheck = new List<checkerStatus>();
             lastCheckDate = DateTime.Now.ToString();
@@ -276,37 +282,49 @@ namespace checker
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             grafx.Graphics.FillRectangle(Brushes.Black, 0, 0, this.Width, this.Height);
-            int numberOfDots = Math.Max(listToCheck.Count(), 1);
-            int dotSize = Math.Max(Math.Max(this.Width / numberOfDots, this.Height / numberOfDots) - 20, 200);
-            this.Text = APP + " " + VERSION + ": Last check date: " + lastCheckDate;
-            SolidBrush redBrush = new SolidBrush(Color.Red);
-            SolidBrush greenBrush = new SolidBrush(Color.Green);
-            int columns = Math.Max(this.Width / dotSize, 1);
-            int rows = Math.Max(this.Height / dotSize, 1);
-            for (int i = 0; i < listToCheck.Count(); i++)
+            if (normalMode)
             {
-                int x = (i % columns) * dotSize;
-                int y = ((i / columns) % rows) * dotSize;
-
-                if (listToCheck[i].status)
+                int numberOfDots = Math.Max(listToCheck.Count(), 1);
+                int dotSize = Math.Max(Math.Max(this.Width / numberOfDots, this.Height / numberOfDots) - 20, 200);
+                this.Text = APP + " " + VERSION + ": Last check date: " + lastCheckDate;
+                SolidBrush redBrush = new SolidBrush(Color.Red);
+                SolidBrush greenBrush = new SolidBrush(Color.Green);
+                int columns = Math.Max(this.Width / dotSize, 1);
+                int rows = Math.Max(this.Height / dotSize, 1);
+                for (int i = 0; i < listToCheck.Count(); i++)
                 {
-                    grafx.Graphics.FillEllipse(greenBrush, x, y, dotSize, dotSize);
+                    int x = (i % columns) * dotSize;
+                    int y = ((i / columns) % rows) * dotSize;
+
+                    if (listToCheck[i].status)
+                    {
+                        grafx.Graphics.FillEllipse(greenBrush, x, y, dotSize, dotSize);
+                    }
+                    else
+                    {
+                        grafx.Graphics.FillEllipse(redBrush, x, y, dotSize, dotSize);
+                    }
+
+                    Font drawFont = new Font("Arial", dotSize / 10);
+                    SolidBrush drawBrush = new SolidBrush(Color.Black);
+
+                    StringFormat drawFormat = new StringFormat();
+                    drawFormat.Alignment = StringAlignment.Center;
+
+                    string label = listToCheck[i].checker.getLabel();
+
+                    grafx.Graphics.DrawString(label, drawFont, drawBrush, x + dotSize / 2, y + dotSize / 2 - dotSize / 10, drawFormat);
                 }
-                else
-                {
-                    grafx.Graphics.FillEllipse(redBrush, x, y, dotSize, dotSize);
-                }
-
-                Font drawFont = new Font("Arial", dotSize / 10);
-                SolidBrush drawBrush = new SolidBrush(Color.Black);
-
-                StringFormat drawFormat = new StringFormat();
-                drawFormat.Alignment = StringAlignment.Center;
-
-                string label = listToCheck[i].checker.getLabel();
-
-                grafx.Graphics.DrawString(label, drawFont, drawBrush, x + dotSize / 2, y + dotSize / 2 - dotSize / 10, drawFormat);
             }
+            else
+            {
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT + SEPARATOR + PSK, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                Bitmap qrCodeImage = qrCode.GetGraphic(20);
+                grafx.Graphics.DrawImage(qrCodeImage, 0, 0);
+            }
+            
             grafx.Render(e.Graphics);
         }
 
@@ -321,6 +339,15 @@ namespace checker
             grafx = context.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
 
             Invalidate();
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == ' ')
+            {
+                normalMode = !normalMode;
+                Invalidate();
+            }
         }
     }
 }
