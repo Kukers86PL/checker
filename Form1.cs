@@ -26,7 +26,6 @@ namespace checker
         private Char   SEPARATOR   = ';';
         private int    PORT        = 0;
         private String IP_ADDRESS  = "";
-        private String PSK         = "";
 
         private struct checkerStatus
         {
@@ -121,11 +120,10 @@ namespace checker
                         INTERVAL = Int32.Parse(line);
                         break;
                     case 2:
-                        if (subs.Length == 3)
+                        if (subs.Length == 2)
                         {
                             IP_ADDRESS = subs[0];
                             PORT = Int32.Parse(subs[1]);
-                            PSK = subs[2];
                         }
                         break;
                     default:
@@ -150,52 +148,12 @@ namespace checker
             file.Close();
         }
 
-        private string EncryptString(string key, string plainText)
-        {
-            byte[] iv = new byte[16];
-            byte[] array;
-
-            string temp = "";
-            for(int i = 0; i < 32; i++)
-            {
-                temp += key[i % key.Length];
-            }
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(temp);
-                aes.IV = iv;
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
-                        {
-                            streamWriter.Write(plainText);
-                        }
-
-                        array = memoryStream.ToArray();
-                    }
-                }
-            }
-
-            return Convert.ToBase64String(array);
-        }
-
         void sendUpdate()
         {
-            String message = "Checker" + SEPARATOR + lastCheckDate + SEPARATOR;
+            String message = lastCheckDate + SEPARATOR;
             for (int i = 0; i < listToCheck.Count; i++)
             {
                 message += listToCheck[i].checker.getLabel() + SEPARATOR + (listToCheck[i].status ? "1" : "0") + SEPARATOR;
-            }
-
-            if (PSK.Length > 0)
-            {
-                message = EncryptString(PSK, message);
             }
 
             UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
@@ -319,7 +277,7 @@ namespace checker
             else
             {
                 QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT.ToString() + SEPARATOR + PSK, QRCodeGenerator.ECCLevel.Q);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT.ToString(), QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new QRCode(qrCodeData);
                 Bitmap qrCodeImage = qrCode.GetGraphic(20);
                 grafx.Graphics.DrawImage(qrCodeImage, 0, 0);
