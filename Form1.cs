@@ -157,7 +157,7 @@ namespace checker
             }
 
             UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
-            Byte[] sendBytes = Encoding.UTF8.GetBytes(message);
+            Byte[] sendBytes = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(message)));
             try
             {
                 udpClient.Send(sendBytes, sendBytes.Length);
