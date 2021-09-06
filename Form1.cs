@@ -288,7 +288,7 @@ namespace checker
                 SolidBrush redBrush = new SolidBrush(Color.Red);
                 SolidBrush greenBrush = new SolidBrush(Color.Green);
                 int columns = Math.Max(this.Width / dotSize, 1);
-                int rows = Math.Max(this.Height / dotSize, listToCheck.Count() / columns) + 1;
+                int rows = Math.Max(this.Height / dotSize, numberOfDots / columns) + 1;
                 vScrollBar1.Maximum = Math.Max((Math.Max(rows - (this.Height / dotSize), 0) * dotSize) , 0);
                 for (int i = 0; i < listToCheck.Count(); i++)
                 {
