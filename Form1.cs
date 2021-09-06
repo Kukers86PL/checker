@@ -191,7 +191,9 @@ namespace checker
                 message += listToCheck[i].checker.getLabel() + SEPARATOR + (listToCheck[i].status ? "1" : "0") + SEPARATOR;
             }
 
-            UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
+            UdpClient udpClient = new UdpClient();
+            udpClient.EnableBroadcast = true;
+            udpClient.Connect(IP_ADDRESS, PORT);
             Byte[] sendBytes = Encoding.UTF8.GetBytes(Encrypt(message, PSK));
             try
             {
@@ -201,6 +203,7 @@ namespace checker
             {
                 // nothing to do
             }
+            udpClient.Close();
         }
 
         void run()
