@@ -42,6 +42,33 @@ namespace checker
         private Boolean isRunning;
         private Boolean normalMode;
 
+        private string Encrypt(string data, string key)
+        {
+            RijndaelManaged rijndaelCipher = new RijndaelManaged();
+            rijndaelCipher.Mode = CipherMode.CBC; //remember this parameter
+            rijndaelCipher.Padding = PaddingMode.PKCS7; //remember this parameter
+
+            rijndaelCipher.KeySize = 0x80;
+            rijndaelCipher.BlockSize = 0x80;
+            byte[] pwdBytes = Encoding.UTF8.GetBytes(key);
+            byte[] keyBytes = new byte[0x10];
+            int len = pwdBytes.Length;
+
+            if (len > keyBytes.Length)
+            {
+                len = keyBytes.Length;
+            }
+
+            Array.Copy(pwdBytes, keyBytes, len);
+            rijndaelCipher.Key = keyBytes;
+            rijndaelCipher.IV = keyBytes;
+            ICryptoTransform transform = rijndaelCipher.CreateEncryptor();
+            byte[] plainText = Encoding.UTF8.GetBytes(data);
+
+            return Convert.ToBase64String
+            (transform.TransformFinalBlock(plainText, 0, plainText.Length));
+        }
+
         ICheck getChecker(String checkerConfigText)
         {
             for(int i = 0; i < checkers.Count(); i++)
@@ -165,7 +192,7 @@ namespace checker
             }
 
             UdpClient udpClient = new UdpClient(IP_ADDRESS, PORT);
-            Byte[] sendBytes = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(message)));
+            Byte[] sendBytes = Encoding.UTF8.GetBytes(Encrypt(message, PSK));
             try
             {
                 udpClient.Send(sendBytes, sendBytes.Length);
