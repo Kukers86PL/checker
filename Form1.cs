@@ -41,6 +41,8 @@ namespace checker
         private String lastCheckDate;
         private Boolean isRunning;
         private Boolean normalMode;
+        private int Y = 0;
+        private int step = 35;
 
         private string Encrypt(string data, string key)
         {
@@ -286,11 +288,12 @@ namespace checker
                 SolidBrush redBrush = new SolidBrush(Color.Red);
                 SolidBrush greenBrush = new SolidBrush(Color.Green);
                 int columns = Math.Max(this.Width / dotSize, 1);
-                int rows = Math.Max(this.Height / dotSize, 1);
+                int rows = Math.Max(this.Height / dotSize, listToCheck.Count() / columns) + 1;
+                vScrollBar1.Maximum = Math.Max((Math.Max(rows - (this.Height / dotSize), 0) * dotSize) , 0);
                 for (int i = 0; i < listToCheck.Count(); i++)
                 {
                     int x = (i % columns) * dotSize;
-                    int y = ((i / columns) % rows) * dotSize;
+                    int y = ((i / columns) % rows) * dotSize + Y;
 
                     if (listToCheck[i].status)
                     {
@@ -348,6 +351,12 @@ namespace checker
                 normalMode = !normalMode;
                 Invalidate();
             }
+        }
+
+        private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
+        {
+            Y = -(e.NewValue);
+            Invalidate();
         }
     }
 }
