@@ -258,6 +258,7 @@ namespace checker
             checkers.Add(new pathChecker());
             checkers.Add(new zeroTierChecker());
             checkers.Add(new ipChecker());
+            checkers.Add(new ispChecker());
 
             isRunning = true;
 
