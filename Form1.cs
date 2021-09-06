@@ -324,15 +324,18 @@ namespace checker
 
         private void Form1_SizeChanged(object sender, EventArgs e)
         {
-            context.MaximumBuffer = new Size(this.Width + 1, this.Height + 1);
-            if (grafx != null)
+            if (context != null)
             {
-                grafx.Dispose();
-                grafx = null;
-            }
-            grafx = context.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
+                context.MaximumBuffer = new Size(this.Width + 1, this.Height + 1);
+                if (grafx != null)
+                {
+                    grafx.Dispose();
+                    grafx = null;
+                }
+                grafx = context.Allocate(this.CreateGraphics(), new Rectangle(0, 0, this.Width, this.Height));
 
-            Invalidate();
+                Invalidate();
+            }
         }
 
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
