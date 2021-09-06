@@ -26,6 +26,7 @@ namespace checker
         private Char   SEPARATOR   = ';';
         private int    PORT        = 0;
         private String IP_ADDRESS  = "";
+        private String PSK = "";
 
         private struct checkerStatus
         {
@@ -124,6 +125,13 @@ namespace checker
                         {
                             IP_ADDRESS = subs[0];
                             PORT = Int32.Parse(subs[1]);
+                            PSK = "";
+                        }
+                        else if (subs.Length == 3)
+                        {
+                            IP_ADDRESS = subs[0];
+                            PORT = Int32.Parse(subs[1]);
+                            PSK = subs[2];
                         }
                         break;
                     default:
@@ -277,10 +285,11 @@ namespace checker
             else
             {
                 QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT.ToString(), QRCodeGenerator.ECCLevel.Q);
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(PORT.ToString() + SEPARATOR + PSK, QRCodeGenerator.ECCLevel.Q);
                 QRCode qrCode = new QRCode(qrCodeData);
                 Bitmap qrCodeImage = qrCode.GetGraphic(20);
                 grafx.Graphics.DrawImage(qrCodeImage, 0, 0);
+                this.Text = APP + " " + VERSION + ": Last check date: " + lastCheckDate;
             }
             
             grafx.Render(e.Graphics);
