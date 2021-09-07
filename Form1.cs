@@ -13,6 +13,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using QRCoder;
+using System.Net;
 
 namespace checker
 {
@@ -36,6 +37,8 @@ namespace checker
 
         private List<ICheck> checkers;
         private List<checkerStatus> listToCheck;
+        private List<TcpClient> clients;
+        private Mutex clientsMutex;
         private BufferedGraphicsContext context;
         private BufferedGraphics grafx;
         private String lastCheckDate;
@@ -43,6 +46,7 @@ namespace checker
         private Boolean normalMode;
         private int Y = 0;
         private int step = 35;
+        private TcpListener server;
 
         private string Encrypt(string data, string key)
         {
@@ -193,19 +197,7 @@ namespace checker
                 message += listToCheck[i].checker.getLabel() + SEPARATOR + (listToCheck[i].status ? "1" : "0") + SEPARATOR;
             }
 
-            UdpClient udpClient = new UdpClient();
-            udpClient.EnableBroadcast = true;
-            udpClient.Connect(IP_ADDRESS, PORT);
-            Byte[] sendBytes = Encoding.UTF8.GetBytes(Encrypt(message, PSK));
-            try
-            {
-                udpClient.Send(sendBytes, sendBytes.Length);
-            }
-            catch
-            {
-                // nothing to do
-            }
-            udpClient.Close();
+            sendClientsUpdate(Encrypt(message, PSK));
         }
 
         void run()
@@ -230,11 +222,57 @@ namespace checker
             }
         }
 
+        void runServer()
+        {
+            server.Start();
+            while (isRunning)
+            {
+                if (server.Pending())
+                {
+                    TcpClient client = server.AcceptTcpClient();
+                    if (client != null)
+                    {
+                        clientsMutex.WaitOne();
+                        clients.Add(client);
+                        clientsMutex.ReleaseMutex();
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(1000);
+                }
+            }
+
+            clientsMutex.WaitOne();
+            for (int i = 0; i < clients.Count; i++)
+            {
+                clients[i].Close();
+            }
+            clientsMutex.ReleaseMutex();
+
+            server.Stop();
+        }
+
+        void sendClientsUpdate(String msg)
+        {
+            clientsMutex.WaitOne();
+            for (int i = 0; i < clients.Count; i++)
+            {
+                TcpClient client = clients[i];
+                NetworkStream stream = client.GetStream();
+                Byte[] sendBytes = Encoding.UTF8.GetBytes(msg);
+                stream.Write(sendBytes, 0, sendBytes.Length);
+                stream.Close();
+            }
+            clientsMutex.ReleaseMutex();
+        }
+
         void init()
         {
             normalMode = true;
             checkers = new List<ICheck>();
             listToCheck = new List<checkerStatus>();
+            clients = new List<TcpClient>();
             lastCheckDate = DateTime.Now.ToString();
             context = BufferedGraphicsManager.Current;
             context.MaximumBuffer = new Size(this.Width + 1, this.Height + 1);
@@ -262,8 +300,14 @@ namespace checker
 
             isRunning = true;
 
-            Thread t = new Thread(run);
-            t.Start();
+            Thread t1 = new Thread(run);
+            t1.Start();
+
+            server = new TcpListener(IPAddress.Parse("0.0.0.0"), PORT);
+            clientsMutex = new Mutex();
+
+            Thread t2 = new Thread(runServer);
+            t2.Start();
         }
 
         public Form1()
