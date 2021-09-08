@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.IO;
-using System.Net;
 
 namespace checker
 {
@@ -39,20 +38,10 @@ namespace checker
 
         public Boolean check()
         {
-            IPAddress ip;
-            if (!IPAddress.TryParse(host, out ip))
-            {
-                IPHostEntry entry = Dns.GetHostEntry(host);
-                if (entry.AddressList.Length > 0)
-                {
-                    ip = entry.AddressList[0];
-                }
-            }
-            
             Ping pingSender = new Ping();
-            PingReply reply = pingSender.Send(ip);
+            PingReply reply = pingSender.Send(host);
             if (reply.Status == IPStatus.Success)
-            {
+            {                
                 responseTime = reply.RoundtripTime;
                 return true;
             }
