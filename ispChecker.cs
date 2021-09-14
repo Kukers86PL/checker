@@ -26,6 +26,8 @@ namespace checker
         private Boolean match = false;
         private String cachedIP = "";
         private Boolean checkedIP = false;
+        private int forceUpdate = 0;
+        private int count = 0;
 
         public String getConfigString()
         {
@@ -35,10 +37,11 @@ namespace checker
         public Boolean pasreConfig(Char Separator, String ConfigText)
         {
             String[] subs = ConfigText.Split(Separator);
-            if (subs.Length == 3)
+            if (subs.Length == 4)
             {
                 label  = subs[1];
                 isp = subs[2];
+                forceUpdate = Int32.Parse(subs[3]);
                 return true;
             }
             return false;
@@ -71,10 +74,10 @@ namespace checker
 
         public Boolean check()
         {
-            if (checkedIP == false)
+            if ((checkedIP == false) || (count >= forceUpdate))
             {
                 String myIPv4 = sendAndReceive(ipURL);
-                if (cachedIP != myIPv4)
+                if ((cachedIP != myIPv4) || (count >= forceUpdate))
                 {
                     String myInoIPv4 = sendAndReceive(ipInfoURL + "/" + myIPv4).ToLower();
                     if (myInoIPv4.Length > 0)
@@ -82,6 +85,7 @@ namespace checker
                         match = myInoIPv4.Contains(isp.ToLower());
                         cachedIP = myIPv4;
                         checkedIP = true;
+                        count = 0;
                     }
                 }
             }
@@ -92,6 +96,8 @@ namespace checker
             {
                 checkedIP = false;
             }
+
+            count++;
 
             return match;
         }
