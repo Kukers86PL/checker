@@ -23,7 +23,6 @@ namespace checker
         private String ipURL = "https://v4.ipv6-test.com/api/myip.php";
         private String ipInfoURL = "https://ipinfo.io";
         private String hostToCheck = "8.8.8.8";
-        private int forceCheck = 0;
         private Boolean match = false;
         private String cachedIP = "";
         private Boolean checkedIP = false;
