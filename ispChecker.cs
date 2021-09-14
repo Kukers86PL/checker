@@ -22,9 +22,11 @@ namespace checker
         private String isp = "";
         private String ipURL = "https://v4.ipv6-test.com/api/myip.php";
         private String ipInfoURL = "https://ipinfo.io";
+        private String hostToCheck = "8.8.8.8";
         private int forceCheck = 0;
         private Boolean match = false;
         private String cachedIP = "";
+        private Boolean checkedIP = false;
 
         public String getConfigString()
         {
@@ -70,13 +72,26 @@ namespace checker
 
         public Boolean check()
         {
-            String myIPv4 = sendAndReceive(ipURL);
-
-            if (cachedIP != myIPv4)
+            if (checkedIP == false)
             {
-                cachedIP = myIPv4;
-                String myInoIPv4 = sendAndReceive(ipInfoURL + "/" + myIPv4).ToLower();
-                match = myInoIPv4.Contains(isp.ToLower());
+                String myIPv4 = sendAndReceive(ipURL);
+                if (cachedIP != myIPv4)
+                {
+                    String myInoIPv4 = sendAndReceive(ipInfoURL + "/" + myIPv4).ToLower();
+                    if (myInoIPv4.Length > 0)
+                    {
+                        match = myInoIPv4.Contains(isp.ToLower());
+                        cachedIP = myIPv4;
+                        checkedIP = true;
+                    }
+                }
+            }
+
+            Ping pingSender = new Ping();
+            PingReply reply = pingSender.Send(hostToCheck);
+            if (reply.Status != IPStatus.Success)
+            {
+                checkedIP = false;
             }
 
             return match;
