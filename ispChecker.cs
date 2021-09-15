@@ -28,6 +28,7 @@ namespace checker
         private Boolean checkedIP = false;
         private int forceUpdate = 0;
         private int count = 0;
+        private String token = "";
 
         public String getConfigString()
         {
@@ -37,11 +38,12 @@ namespace checker
         public Boolean pasreConfig(Char Separator, String ConfigText)
         {
             String[] subs = ConfigText.Split(Separator);
-            if (subs.Length == 4)
+            if (subs.Length == 5)
             {
                 label  = subs[1];
                 isp = subs[2];
                 forceUpdate = Int32.Parse(subs[3]);
+                token = subs[4];
                 return true;
             }
             return false;
@@ -77,15 +79,18 @@ namespace checker
             if ((checkedIP == false) || (count >= forceUpdate))
             {
                 String myIPv4 = sendAndReceive(ipURL);
-                if ((cachedIP != myIPv4) || (count >= forceUpdate))
+                if (myIPv4.Length > 0)
                 {
-                    String myInoIPv4 = sendAndReceive(ipInfoURL + "/" + myIPv4).ToLower();
-                    if (myInoIPv4.Length > 0)
+                    if ((cachedIP != myIPv4) || (count >= forceUpdate))
                     {
-                        match = myInoIPv4.Contains(isp.ToLower());
-                        cachedIP = myIPv4;
-                        checkedIP = true;
-                        count = 0;
+                        String myInoIPv4 = sendAndReceive(ipInfoURL + "/" + myIPv4 + "?token=" + token).ToLower();
+                        if (myInoIPv4.Length > 0)
+                        {
+                            match = myInoIPv4.Contains(isp.ToLower());
+                            cachedIP = myIPv4;
+                            checkedIP = true;
+                            count = 0;
+                        }
                     }
                 }
             }
